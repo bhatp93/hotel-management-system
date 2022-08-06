@@ -12,7 +12,7 @@ public class InvoiceItem {
 	int invoiceItemId;
 	String itemDescription;
 	double amount;
-	int bookingId;
+	int invoiceId;
 	PaymentStatus paymentStatus;
 	
 	public boolean updateAmount() {
@@ -43,12 +43,13 @@ public class InvoiceItem {
 		this.amount = amount;
 	}
 
-	public int getBookingId() {
-		return bookingId;
+
+	public int getInvoiceId() {
+		return invoiceId;
 	}
 
-	public void setBookingId(int bookingId) {
-		this.bookingId = bookingId;
+	public void setInvoiceId(int invoiceId) {
+		this.invoiceId = invoiceId;
 	}
 
 	public PaymentStatus getPaymentStatus() {

@@ -1,6 +1,8 @@
 package com.grokkingTheCodingInterview.hotelmanagementsystem.Model;
 
 public class PaymentRequestInformation {
+	
+	//mandatory fields according to the paymentType
 	PaymentType paymentType;
 	String nameOnCard;
 	String zipcode;

@@ -2,4 +2,11 @@ RoomBooking --> do not send the id value back
 RoomBooking --> check how bookingString is created
 Receptionist -->look to map classes
 Receptionist -->send bookedRooms with pending status
-Receptionist -->Make function bette
+Receptionist -->Make function better
+Receptionist -->Make all transaction in one class - think
+PaymentRequestInformation-->mandatory fields according to the paymentType
+CreditCardTransaction -->complete this
+CheckTransaction -->complete this
+Receptionist -->if cancelled completely. close invoice and booking
+RoomBooking -->use this
+Room -->hidden value

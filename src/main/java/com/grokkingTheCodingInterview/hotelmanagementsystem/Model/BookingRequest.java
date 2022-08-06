@@ -4,11 +4,10 @@ import java.time.LocalDateTime;
 
 public class BookingRequest {
 	int roomId;
+	String reservationNumber;  
 	LocalDateTime startDate;
 	int durationInDays;
-	
-	
-	
+		
 	public int getRoomId() {
 		return roomId;
 	}
@@ -26,5 +25,13 @@ public class BookingRequest {
 	}
 	public void setDurationInDays(int durationInDays) {
 		this.durationInDays = durationInDays;
+	}
+	public String getReservationNumber() {
+		return reservationNumber;
+	}
+	public void setReservationNumber(String reservationNumber) {
+		this.reservationNumber = reservationNumber;
 	}	
+	
+	
 }

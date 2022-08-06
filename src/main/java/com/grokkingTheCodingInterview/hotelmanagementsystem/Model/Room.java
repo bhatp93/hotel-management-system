@@ -8,6 +8,7 @@ import javax.persistence.Id;
 public class Room {
 	@Id
 	@GeneratedValue
+	//hidden value
 	int id;
 	String roomNumber;
 	RoomStyle style;

@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.BookingRequest;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.BookingResponse;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.BookingStatus;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.CashTransaction;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.CheckTransaction;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.CreditCardTransaction;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.Invoice;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.InvoiceItem;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.PaymentRequestInformation;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.PaymentStatus;
@@ -25,8 +29,12 @@ import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.Room;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.RoomBooking;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.RoomStyle;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.SearchEntities;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.CashTransactionRepository;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.CheckTransactionRepository;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.CreditCardTransactionRepository;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.HotelDAL;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.InvoiceItemRepository;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.InvoiceRepository;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.RoomBookingRepository;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.RoomRepository;
 
@@ -44,6 +52,18 @@ public class Receptionist implements Search{
 	
 	@Autowired
 	private InvoiceItemRepository invoiceItemRepository;
+	
+	@Autowired
+	private InvoiceRepository invoiceRepository;
+	
+	@Autowired
+	private CashTransactionRepository cashTransactionRepository;
+	
+	@Autowired
+	private CreditCardTransactionRepository creditCardTransactionRepository;
+	
+	@Autowired
+	private CheckTransactionRepository checkTransactionRepository;
 	
 	@PostMapping("/addRoom/{userName}")
 	public ResponseEntity<Room> addRoom(@RequestBody Room room, @PathVariable String userName) {
@@ -80,6 +100,10 @@ public class Receptionist implements Search{
 		 
 		RoomBooking bookedRoom = roomBookingRepository.save(roomBooking);
 		
+		Invoice invoice = new Invoice();		
+		invoice.setBookingId(bookedRoom.getBookingId());
+		invoiceRepository.save(invoice);
+		
 		BookingResponse bookingResponse = new BookingResponse();
 		//look to map classes 
 		bookingResponse.setReservationNumber(bookingResponse.getReservationNumber());
@@ -90,23 +114,73 @@ public class Receptionist implements Search{
 		return new ResponseEntity(bookingResponse, HttpStatus.CREATED);
 	}
 	
-	public void makePayment(@RequestBody PaymentRequestInformation paymentRequestInformation) {
+	@PostMapping("/makePayment")
+	public HttpStatus makePayment(@RequestBody PaymentRequestInformation paymentRequestInformation) {
 		Optional<RoomBooking> roomBookingDB = roomBookingRepository.findById(paymentRequestInformation.getBookingId());
 		Optional<Room> roomDB = roomRepository.findById(roomBookingDB.get().getRoomId());
+		Optional<Invoice> invoiceDB = invoiceRepository.findById(roomBookingDB.get().getInvoiceId());		
+		invoiceDB.get().setAmount(roomDB.get().getBookingPrice());
+		
 		InvoiceItem invoiceItem = new InvoiceItem();
 		invoiceItem.setItemDescription("Room Tariff");
 		invoiceItem.setAmount(roomDB.get().getBookingPrice());
-		invoiceItem.setBookingId(roomBookingDB.get().getBookingId());
+		invoiceItem.setInvoiceId(invoiceDB.get().getInvoiceId());		
+		boolean paymentSuccess = false;
+		//Make all transaction in one class - think
 		if(paymentRequestInformation.getPaymentType()== PaymentType.Cash) {
-			
-			receptionist booking you idiot, it is on the spot
-			roomBookingDB.get().setStatus(BookingStatus.Pending);
-			invoiceItem.setPaymentStatus(PaymentStatus.Pending);			
+			CashTransaction cashTransaction = new CashTransaction();
+			cashTransaction.setTransactionId();
+			cashTransaction.setInvoiceId(invoiceDB.get().getInvoiceId());
+			cashTransaction.setCashTendered(paymentRequestInformation.getCashTendered());
+			roomBookingDB.get().setStatus(BookingStatus.Confirmed);
+			if(paymentRequestInformation.getCashTendered() < roomDB.get().getBookingPrice()) {
+				invoiceItem.setPaymentStatus(PaymentStatus.Unpaid);
+				paymentSuccess = true;
+			}				
+			else
+				invoiceItem.setPaymentStatus(PaymentStatus.Completed);
+			cashTransactionRepository.save(cashTransaction);			
 		}
 		else if(paymentRequestInformation.getPaymentType()== PaymentType.Check) {
-			tadiyana taderaneddddl;kkldfsllnksdfbljk
-		}
+			CheckTransaction checkTransaction = new CheckTransaction();
+			checkTransaction.setBankName(paymentRequestInformation.getBankName());
+			checkTransaction.setCheckNumber(paymentRequestInformation.getCheckNumber());
+			checkTransaction.setInvoiceId(invoiceDB.get().getInvoiceId());
+			if(checkTransaction.initiateTransaction()) {
+				roomBookingDB.get().setStatus(BookingStatus.Confirmed);
+				paymentSuccess = true;
+			}
+				
+			else
+				roomBookingDB.get().setStatus(BookingStatus.Canceled); // if cancelled completely. close invoice and booking 
 			
+			checkTransactionRepository.save(checkTransaction);
+		}
+		else if(paymentRequestInformation.getPaymentType()== PaymentType.CreditCard) {
+			CreditCardTransaction creditCardTransaction = new CreditCardTransaction();
+			creditCardTransaction.setInvoiceId(invoiceDB.get().getInvoiceId());
+			creditCardTransaction.setNameOnCard(paymentRequestInformation.getNameOnCard());
+			creditCardTransaction.setTransactionId();
+			creditCardTransaction.setZipCode(paymentRequestInformation.getZipcode());
+			if(creditCardTransaction.initiateTransaction()) {
+				roomBookingDB.get().setStatus(BookingStatus.Confirmed);
+				paymentSuccess = true;
+			}				
+			else
+				roomBookingDB.get().setStatus(BookingStatus.Canceled);	// if cancelled completely. close invoice and booking 
+			creditCardTransactionRepository.save(creditCardTransaction);
+		}	
+		roomBookingRepository.save(roomBookingDB.get());
+		invoiceItemRepository.save(invoiceItem);
+		if(paymentSuccess)
+			return HttpStatus.OK;
+		else
+			return HttpStatus.BAD_GATEWAY;
+	}
+	
+	@PostMapping("/updateBooking")
+	public void updateBooking(@RequestBody BookingRequest bookingRequest) {
+		
 	}
 	
 	@Override

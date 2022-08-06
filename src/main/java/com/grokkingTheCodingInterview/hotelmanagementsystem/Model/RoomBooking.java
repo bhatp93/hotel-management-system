@@ -18,15 +18,38 @@ public class RoomBooking {
 	BookingStatus status;
 	LocalDateTime checkin;
 	LocalDateTime checkout;
+	int invoiceId;
 	
 	//Try not to send this back
 	int roomId;
 	
 	static int reservationint = 1000;
 	
+	
+	//use this 
 	public RoomBooking fetchDetails() {
 		return this;
 	}
+
+	
+	
+	public int getInvoiceId() {
+		return invoiceId;
+	}
+
+
+
+	public void setInvoiceId(int invoiceId) {
+		this.invoiceId = invoiceId;
+	}
+
+
+
+	public void setReservationNumber(String reservationNumber) {
+		this.reservationNumber = reservationNumber;
+	}
+
+
 
 	public String getReservationNumber() {
 		return reservationNumber;
