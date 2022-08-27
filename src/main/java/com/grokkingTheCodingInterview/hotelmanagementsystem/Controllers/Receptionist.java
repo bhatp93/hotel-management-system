@@ -29,6 +29,7 @@ import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.Room;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.RoomBooking;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.RoomStyle;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.SearchEntities;
+import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.UpdateBooking;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.CashTransactionRepository;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.CheckTransactionRepository;
 import com.grokkingTheCodingInterview.hotelmanagementsystem.dataAccessLayer.CreditCardTransactionRepository;
@@ -102,15 +103,19 @@ public class Receptionist implements Search{
 		
 		Invoice invoice = new Invoice();		
 		invoice.setBookingId(bookedRoom.getBookingId());
+		
+		//Throw exception if needed
 		invoiceRepository.save(invoice);
 		
+		Room room = roomRepository.findById(bookingRequest.getRoomId()).get();
 		BookingResponse bookingResponse = new BookingResponse();
 		//look to map classes 
-		bookingResponse.setReservationNumber(bookingResponse.getReservationNumber());
+		bookingResponse.setReservationNumber(bookedRoom.getReservationNumber());
 		bookingResponse.setStartDate(bookedRoom.getStartDate());
 		bookingResponse.setDurationInDays(bookedRoom.getDurationInDays());
 		bookingResponse.setStatus(bookedRoom.getStatus());
-		bookingResponse.setRoomId(bookedRoom.getRoomId());				
+		bookingResponse.setRoomId(bookedRoom.getRoomId());	
+		bookingResponse.setRoomStyle(room.getStyle());
 		return new ResponseEntity(bookingResponse, HttpStatus.CREATED);
 	}
 	
@@ -179,8 +184,38 @@ public class Receptionist implements Search{
 	}
 	
 	@PostMapping("/updateBooking")
-	public void updateBooking(@RequestBody BookingRequest bookingRequest) {
+	public ResponseEntity<BookingResponse> updateBooking(@RequestBody UpdateBooking updateRequest) {
+		BookingResponse bookingResponse = new BookingResponse();
 		
+		//Cannot be more than one in the list. Throw exception
+		List<RoomBooking> roomBookingDB = roomBookingRepository.getBookingByReservationNumber(updateRequest.getReservationNumber());
+		Room room = roomRepository.findById(roomBookingDB.get(0).getRoomId()).get();
+		if(updateRequest.getStartDate().equals(roomBookingDB.get(0).getStartDate()) &&  updateRequest.getDurationInDays() == roomBookingDB.get(0).getDurationInDays()) {
+			//map classes
+			bookingResponse.setReservationNumber(roomBookingDB.get(0).getReservationNumber());
+			bookingResponse.setStartDate(roomBookingDB.get(0).getStartDate());
+			bookingResponse.setDurationInDays(roomBookingDB.get(0).getDurationInDays());
+			bookingResponse.setStatus(roomBookingDB.get(0).getStatus());
+			bookingResponse.setRoomId(roomBookingDB.get(0).getRoomId());
+			bookingResponse.setRoomStyle(room.getStyle());
+			bookingResponse.setMessage("No Change in the booking");
+		}		
+		else {
+			List<Room> availableRooms = search(updateRequest.getRoomStyle(), updateRequest.getStartDate(), updateRequest.getDurationInDays());
+			if(availableRooms == null) {
+				//Add as a pending Request and ask if the user wants to be notified if it becomes available.
+				bookingResponse.setMessage("Required room is not available.");
+			}
+			else {
+				roomBookingDB.get(0).setRoomId(availableRooms.get(0).getId());
+				roomBookingDB.get(0).setStartDate(updateRequest.getStartDate());
+				roomBookingDB.get(0).setDurationInDays(updateRequest.getDurationInDays());
+				roomBookingRepository.save(roomBookingDB.get(0));
+				bookingResponse.setDurationInDays(updateRequest.getDurationInDays());
+			}			
+		}
+			
+			
 	}
 	
 	@Override
@@ -194,12 +229,12 @@ public class Receptionist implements Search{
 				for(int j=0; j<roomBookings.size();j++) {
 					if(roomBookings.get(j).getRoomId() == rooms.get(i).getId()) {
 						LocalDateTime currentRoomBookingDate = roomBookings.get(j).getStartDate();
-						int currentDuration = roomBookings.get(j).getDurationInDays();
-						
-						//send bookedRooms with pending status
-						if(startDate.isBefore(currentRoomBookingDate) || startDate.isAfter(currentRoomBookingDate.plusDays(currentDuration))) {
-							roomsAvailable.add(rooms.get(i));							
+						int currentDuration = roomBookings.get(j).getDurationInDays();						 
+						if(endDate.isBefore(currentRoomBookingDate) || startDate.isAfter(currentRoomBookingDate.plusDays(currentDuration))) {
+							if(roomBookings.get(j).getStatus() != BookingStatus.Confirmed || roomBookings.get(j).getStatus() != BookingStatus.Checked_in)
+								roomsAvailable.add(rooms.get(i));														
 		}}}}}
+				
 		return roomsAvailable;
 	}
 }

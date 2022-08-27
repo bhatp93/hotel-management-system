@@ -6,8 +6,13 @@ public class BookingResponse {
 	String reservationNumber;
 	LocalDateTime startDate;
 	int durationInDays;
+	RoomStyle roomStyle;
 	BookingStatus status;
 	int roomId;
+	String message;
+
+	
+	
 	public String getReservationNumber() {
 		return reservationNumber;
 	}
@@ -38,5 +43,18 @@ public class BookingResponse {
 	public void setRoomId(int roomId) {
 		this.roomId = roomId;
 	}
+	public RoomStyle getRoomStyle() {
+		return roomStyle;
+	}
+	public void setRoomStyle(RoomStyle roomStyle) {
+		this.roomStyle = roomStyle;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
 	
 }

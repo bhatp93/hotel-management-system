@@ -15,6 +15,7 @@ public class RoomBooking {
 	String reservationNumber;
 	LocalDateTime startDate;
 	int durationInDays;
+	
 	BookingStatus status;
 	LocalDateTime checkin;
 	LocalDateTime checkout;

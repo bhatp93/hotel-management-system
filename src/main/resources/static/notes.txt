@@ -10,3 +10,8 @@ CheckTransaction -->complete this
 Receptionist -->if cancelled completely. close invoice and booking
 RoomBooking -->use this
 Room -->hidden value
+
+Receptionist-->map classes
+Receptionist-->Throw exception if needed
+Receptionist-->Cannot be more than one in the list. Throw exception
+Receptionist-->Add as a pending Request and ask if the user wants to be notified if it becomes available.

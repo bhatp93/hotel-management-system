@@ -2,18 +2,18 @@ package com.grokkingTheCodingInterview.hotelmanagementsystem.Model;
 
 import java.time.LocalDateTime;
 
-public class BookingRequest {
-	int roomId;
+public class UpdateBooking {
 	String reservationNumber;  
 	LocalDateTime startDate;
-	int durationInDays;
 	RoomStyle roomStyle;
-		
-	public int getRoomId() {
-		return roomId;
+	int durationInDays;
+
+
+	public String getReservationNumber() {
+		return reservationNumber;
 	}
-	public void setRoomId(int roomId) {
-		this.roomId = roomId;
+	public void setReservationNumber(String reservationNumber) {
+		this.reservationNumber = reservationNumber;
 	}
 	public LocalDateTime getStartDate() {
 		return startDate;
@@ -27,18 +27,12 @@ public class BookingRequest {
 	public void setDurationInDays(int durationInDays) {
 		this.durationInDays = durationInDays;
 	}
-	public String getReservationNumber() {
-		return reservationNumber;
-	}
-	public void setReservationNumber(String reservationNumber) {
-		this.reservationNumber = reservationNumber;
-	}
 	public RoomStyle getRoomStyle() {
 		return roomStyle;
 	}
 	public void setRoomStyle(RoomStyle roomStyle) {
 		this.roomStyle = roomStyle;
-	}	
+	}
 	
 	
 }
