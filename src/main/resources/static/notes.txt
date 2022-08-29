@@ -15,3 +15,5 @@ Receptionist-->map classes
 Receptionist-->Throw exception if needed
 Receptionist-->Cannot be more than one in the list. Throw exception
 Receptionist-->Add as a pending Request and ask if the user wants to be notified if it becomes available.
+Receptionist-->Decide which room should be alloted if multiple rooms are available, check if we can give user the option to choose from.
+Receptionist-->throw exception if it is not saved

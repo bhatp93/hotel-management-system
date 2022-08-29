@@ -12,7 +12,7 @@ import com.grokkingTheCodingInterview.hotelmanagementsystem.Model.RoomBooking;
 @Component
 public interface RoomBookingRepository extends JpaRepository<RoomBooking, Integer>{
 	
-	@Query("Select r from RoomBooking r from r.reservationNumber = :p")
+	@Query("Select r from RoomBooking r where r.reservationNumber = :p")
 	public List<RoomBooking> getBookingByReservationNumber(@Param("p") String reservationNumber);
 		
 	

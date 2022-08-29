@@ -189,6 +189,7 @@ public class Receptionist implements Search{
 		
 		//Cannot be more than one in the list. Throw exception
 		List<RoomBooking> roomBookingDB = roomBookingRepository.getBookingByReservationNumber(updateRequest.getReservationNumber());
+		//
 		Room room = roomRepository.findById(roomBookingDB.get(0).getRoomId()).get();
 		if(updateRequest.getStartDate().equals(roomBookingDB.get(0).getStartDate()) &&  updateRequest.getDurationInDays() == roomBookingDB.get(0).getDurationInDays()) {
 			//map classes
@@ -205,17 +206,25 @@ public class Receptionist implements Search{
 			if(availableRooms == null) {
 				//Add as a pending Request and ask if the user wants to be notified if it becomes available.
 				bookingResponse.setMessage("Required room is not available.");
+				//roomBookingDB.get(0).setStatus(BookingStatus.Pending);
+				roomBookingRepository.save(roomBookingDB.get(0));
 			}
 			else {
+				//Decide which room should be alloted if multiple rooms are available, check if we can give user the option to choose from. 
 				roomBookingDB.get(0).setRoomId(availableRooms.get(0).getId());
 				roomBookingDB.get(0).setStartDate(updateRequest.getStartDate());
 				roomBookingDB.get(0).setDurationInDays(updateRequest.getDurationInDays());
-				roomBookingRepository.save(roomBookingDB.get(0));
-				bookingResponse.setDurationInDays(updateRequest.getDurationInDays());
+				//throw exception if it is not saved
+				RoomBooking roomBookingUpdated =  roomBookingRepository.save(roomBookingDB.get(0));
+				bookingResponse.setReservationNumber(roomBookingUpdated.getReservationNumber());
+				bookingResponse.setStartDate(roomBookingUpdated.getStartDate());
+				bookingResponse.setDurationInDays(roomBookingUpdated.getDurationInDays());
+				bookingResponse.setStatus(roomBookingUpdated.getStatus());
+				bookingResponse.setRoomId(roomBookingUpdated.getRoomId());
+				bookingResponse.setRoomStyle(availableRooms.get(0).getStyle());
 			}			
-		}
-			
-			
+		}	
+		return  new ResponseEntity(bookingResponse, HttpStatus.OK);
 	}
 	
 	@Override
